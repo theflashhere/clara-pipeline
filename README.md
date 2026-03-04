@@ -1,4 +1,5 @@
 # Clara Answers — AI Voice Agent Pipeline
+Loom Video Link - https://www.loom.com/share/c1d9bda16b594dd1bcf191ab1c48773b?t=593
 
 Automated pipeline: call transcript -> structured account memo -> Retell voice agent config -> versioned updates.
 
