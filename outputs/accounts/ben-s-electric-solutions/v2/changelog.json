@@ -1,0 +1,80 @@
+[
+  {
+    "field": "business_hours.end",
+    "old_value": "4:30",
+    "new_value": "5:00 PM",
+    "reason": "Client confirmed 5:00 PM end time - website listing was outdated"
+  },
+  {
+    "field": "business_hours.start",
+    "old_value": "8",
+    "new_value": "8:30 AM",
+    "reason": "Client confirmed 8:30 AM start time - website listing was outdated"
+  },
+  {
+    "field": "business_hours.timezone",
+    "old_value": "America/Edmonton (inferred)",
+    "new_value": "America/Edmonton",
+    "reason": "Timezone explicitly confirmed by client (Calgary, Alberta)"
+  },
+  {
+    "field": "call_routing.transfer_phone_number",
+    "old_value": "null",
+    "new_value": "403-555-0192",
+    "reason": "Ben's second personal number confirmed during onboarding follow-up"
+  },
+  {
+    "field": "call_transfer_rules.transfer_timeout_seconds",
+    "old_value": "30",
+    "new_value": "45",
+    "reason": "Client requested longer timeout to give more time to answer"
+  },
+  {
+    "field": "emergency_routing_rules.allowed_clients",
+    "old_value": "[{'company': 'G&M Pressure Washing', 'contact_name': 'Shelley Manley', 'phone': '403-870-8494', 'email': 'gm_pressurewash@yahoo.ca', 'property_type': 'Gas stations (Chevron and Esso)', 'notes': 'Property manager overseeing ~20 gas stations. Emergency calls should be transferred directly to Ben.'}]",
+    "new_value": "[{'company': 'G&M Pressure Washing', 'contact_name': 'Shelley Manley', 'phone': '403-870-8494', 'email': 'gm_pressurewash@yahoo.ca', 'property_type': 'Gas stations (Chevron and Esso)', 'notes': 'Property manager overseeing ~20 gas stations. Emergency calls should be transferred directly to Ben.'}, {'company': 'Northland Property Management', 'contact_name': 'Dave Kowalski', 'phone': '403-555-0288', 'email': None, 'property_type': 'Commercial strip malls and office buildings', 'notes': 'Dave may call after hours for urgent electrical faults in tenant spaces.'}]",
+    "reason": "Additional emergency client added: Northland Property Management"
+  },
+  {
+    "field": "emergency_routing_rules.transfer_to",
+    "old_value": "Ben's personal number (pending)",
+    "new_value": "403-555-0192",
+    "reason": "Updated during onboarding follow-up"
+  },
+  {
+    "field": "integration_constraints",
+    "old_value": "[]",
+    "new_value": "[\"Never create or modify ServiceTrade jobs directly. All job creation handled manually by Ben.\"]",
+    "reason": "Client specified ServiceTrade must not be touched by Clara"
+  },
+  {
+    "field": "notification_preferences.sms_number",
+    "old_value": "Ben's main line (same as business line \u2014 to be confirmed)",
+    "new_value": "403-555-0147",
+    "reason": "Ben's main business line confirmed for SMS notifications"
+  },
+  {
+    "field": "office_address",
+    "old_value": "null",
+    "new_value": "Calgary, Alberta, Canada (mobile operation - no fixed client-facing address)",
+    "reason": "Client confirmed mobile operation - Calgary, Alberta"
+  },
+  {
+    "field": "pricing_info.commercial_hourly_rate",
+    "old_value": "null",
+    "new_value": "$115/hour",
+    "reason": "Commercial rate differs from residential - added per client"
+  },
+  {
+    "field": "pricing_info.notes",
+    "old_value": "$115 call-out fee gets technician to job site. Hourly starts after arrival.",
+    "new_value": "$115 call-out fee gets technician to job site. Hourly starts after arrival. Commercial rate: $115/hour.",
+    "reason": "Updated during onboarding follow-up"
+  },
+  {
+    "field": "questions_or_unknowns",
+    "old_value": "[\"Ben's second phone number for direct call transfers (pending \u2014 to be shared via email)\", \"Ben's main phone number for SMS notifications (not explicitly stated in transcript)\", \"Exact timezone not confirmed (inferred from area code 403 as America/Edmonton)\"]",
+    "new_value": "[]",
+    "reason": "Resolved unknowns from onboarding update"
+  }
+]

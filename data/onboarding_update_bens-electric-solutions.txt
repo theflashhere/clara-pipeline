@@ -1,0 +1,50 @@
+CLARA ANSWERS — ONBOARDING UPDATE FORM
+Account: Ben's Electric Solutions
+Submitted by: Ben
+Date: Follow-up after onboarding call
+
+--- UPDATES FROM CLIENT ---
+
+1. SECOND PHONE NUMBER (Transfer Number)
+   Ben's second personal number is now active: 403-555-0192
+   This number should be used for all call transfers from Clara.
+   Clara should answer all incoming calls first, then transfer if needed.
+
+2. MAIN BUSINESS LINE (SMS Notifications)
+   Ben's main business line for SMS notifications: 403-555-0147
+   This is the number customers currently call and where Clara is forwarding from.
+
+3. TIMEZONE CONFIRMATION
+   Confirmed timezone: America/Edmonton (Mountain Time, Canada)
+   Ben operates out of Calgary, Alberta.
+
+4. OFFICE ADDRESS
+   Ben's Electric Solutions
+   Calgary, Alberta, Canada
+   (Ben operates mobile — no fixed office address for clients)
+
+5. BUSINESS HOURS CLARIFICATION
+   Ben confirmed official hours: Monday to Friday, 8:30 AM to 5:00 PM
+   Website listing of 8:00 AM to 4:30 PM is outdated — please use 8:30–5:00.
+
+6. AFTER-HOURS EMERGENCY — ADDITIONAL CONTEXT
+   In addition to G&M Pressure Washing, Ben has one more emergency client:
+   Company: Northland Property Management
+   Contact: Dave Kowalski
+   Phone: 403-555-0288
+   Property type: Commercial strip malls and office buildings
+   Notes: Dave may call after hours for urgent electrical faults in tenant spaces.
+   These calls should also be transferred directly to Ben after hours.
+
+7. CALL TRANSFER TIMEOUT
+   Ben requests the transfer timeout be set to 45 seconds (not 30).
+   If transfer fails after 45 seconds, Clara should collect details and send SMS immediately.
+
+8. PRICING — ADDITIONAL DETAIL
+   Commercial hourly rate: $115/hour (different from residential $98/hour)
+   Ben wants Clara to mention the commercial rate if the caller is calling about a commercial property.
+
+9. INTEGRATION NOTE
+   Ben uses ServiceTrade for job scheduling.
+   Clara should NEVER attempt to create or modify ServiceTrade jobs directly.
+   All job creation is handled manually by Ben after reviewing Clara's call summaries.

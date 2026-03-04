@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clara Pipeline — Agent Configuration Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a3d;
+    --accent: #6c63ff;
+    --accent2: #00d4aa;
+    --warn: #ff8c42;
+    --danger: #ff4d6d;
+    --text: #e8e8f0;
+    --muted: #7070a0;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid bg */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: linear-gradient(var(--border) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .layout {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .logo {
+    padding: 28px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-mark {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+
+  .logo-mark span { color: var(--accent); }
+
+  .logo-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 4px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .nav {
+    padding: 16px 0;
+    flex: 1;
+  }
+
+  .nav-section {
+    padding: 8px 24px 4px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+  }
+
+  .nav-item:hover { color: var(--text); background: rgba(108,99,255,0.05); }
+  .nav-item.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(108,99,255,0.08);
+  }
+
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+
+  .sidebar-footer {
+    padding: 20px 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .api-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent2);
+    box-shadow: 0 0 6px var(--accent2);
+  }
+
+  /* ── Main ── */
+  .main {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .topbar {
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(10,10,15,0.8);
+    backdrop-filter: blur(10px);
+  }
+
+  .topbar-title {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .topbar-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn {
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover { background: #7d75ff; transform: translateY(-1px); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px;
+  }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+
+  .tab {
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+  }
+
+  .badge {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-v1 { background: rgba(108,99,255,0.15); color: var(--accent); }
+  .badge-v2 { background: rgba(0,212,170,0.15); color: var(--accent2); }
+  .badge-warn { background: rgba(255,140,66,0.15); color: var(--warn); }
+  .badge-ok { background: rgba(0,212,170,0.12); color: var(--accent2); }
+  .badge-err { background: rgba(255,77,109,0.15); color: var(--danger); }
+
+  /* ── Grid ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+  /* ── Fields ── */
+  .field { margin-bottom: 14px; }
+  .field-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .field-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    word-break: break-word;
+  }
+  .field-value.null-val {
+    color: var(--muted);
+    font-style: italic;
+    font-size: 12px;
+  }
+  .field-value.mono {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent2);
+  }
+
+  /* ── Unknowns ── */
+  .unknown-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(255,140,66,0.06);
+    border: 1px solid rgba(255,140,66,0.2);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: var(--warn);
+  }
+
+  .unknown-icon { flex-shrink: 0; font-size: 14px; }
+
+  /* ── Prompt viewer ── */
+  .prompt-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.8;
+    color: #b0b0d0;
+    max-height: 520px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .prompt-box::-webkit-scrollbar { width: 5px; }
+  .prompt-box::-webkit-scrollbar-track { background: var(--surface); }
+  .prompt-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── Section headings inside prompt ── */
+  .prompt-box .ph { color: var(--accent); font-weight: 700; }
+  .prompt-box .pstep { color: var(--accent2); }
+
+  /* ── Tags ── */
+  .tag {
+    display: inline-block;
+    padding: 3px 10px;
+    background: rgba(108,99,255,0.1);
+    border: 1px solid rgba(108,99,255,0.2);
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--accent);
+    margin: 3px 3px 3px 0;
+  }
+
+  /* ── Stats bar ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .stat-card.accent::after { background: var(--accent); }
+  .stat-card.green::after { background: var(--accent2); }
+  .stat-card.warn::after { background: var(--warn); }
+  .stat-card.danger::after { background: var(--danger); }
+
+  .stat-num {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-card.accent .stat-num { color: var(--accent); }
+  .stat-card.green .stat-num { color: var(--accent2); }
+  .stat-card.warn .stat-num { color: var(--warn); }
+  .stat-card.danger .stat-num { color: var(--danger); }
+
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  /* ── Diff viewer ── */
+  .diff-row {
+    display: grid;
+    grid-template-columns: 220px 1fr 1fr 1fr;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+
+  .diff-row:first-child { border-top: 1px solid var(--border); }
+
+  .diff-cell {
+    padding: 10px 14px;
+    border-right: 1px solid var(--border);
+  }
+
+  .diff-cell:last-child { border-right: none; }
+
+  .diff-field {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .diff-old {
+    background: rgba(255,77,109,0.05);
+    color: #ff9aaf;
+    text-decoration: line-through;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  .diff-new {
+    background: rgba(0,212,170,0.05);
+    color: var(--accent2);
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  /* ── Flow diagram ── */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 14px 0;
+    position: relative;
+  }
+
+  .flow-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 44px;
+    bottom: -14px;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .flow-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .flow-content { flex: 1; }
+  .flow-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+  .flow-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── Upload area ── */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .upload-zone:hover {
+    border-color: var(--accent);
+    background: rgba(108,99,255,0.04);
+  }
+
+  .upload-icon { font-size: 32px; margin-bottom: 12px; }
+  .upload-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .upload-sub { font-size: 12px; color: var(--muted); }
+
+  /* ── Copy button ── */
+  .copy-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: var(--mono);
+    transition: all 0.15s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+
+  /* ── Page sections ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── Routing rules ── */
+  .rule-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .rule-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .rule-title { font-size: 13px; font-weight: 600; }
+
+  .client-card {
+    background: rgba(0,212,170,0.04);
+    border: 1px solid rgba(0,212,170,0.15);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+
+  .ver-switch { display: flex; gap: 4px; align-items: center; }
+  .version-btn {
+    padding: 5px 14px; border-radius: 4px; border: 1px solid var(--border);
+    background: transparent; color: var(--muted); font-family: var(--mono);
+    font-size: 11px; cursor: pointer; transition: all 0.15s;
+  }
+  .version-btn:hover { color: var(--text); }
+  .version-btn.active-ver { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ── Animations ── */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .card, .stat-card { animation: fadeIn 0.3s ease both; }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .section-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 24px 0;
+  }
+
+  /* JSON viewer toggle */
+  .json-toggle {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 5px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .json-toggle:hover { color: var(--text); }
+
+  .json-viewer {
+    display: none;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.7;
+    color: #8888cc;
+    max-height: 400px;
+    overflow-y: auto;
+    white-space: pre;
+    margin-top: 12px;
+  }
+
+  .json-viewer.open { display: block; }
+
+  .json-key { color: var(--accent); }
+  .json-str { color: var(--accent2); }
+  .json-num { color: var(--warn); }
+  .json-bool { color: var(--danger); }
+  .json-null { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark"><span>Clara</span> Pipeline</div>
+      <div class="logo-sub">Agent Configuration System</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">Overview</div>
+      <div class="nav-item active" onclick="showPage('dashboard', this)">
+        <span class="nav-icon">⬡</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('account', this)">
+        <span class="nav-icon">◈</span> Account Memo
+      </div>
+      <div class="nav-item" onclick="showPage('agent', this)">
+        <span class="nav-icon">◎</span> Agent Spec
+      </div>
+      <div class="nav-section">Flows</div>
+      <div class="nav-item" onclick="showPage('flows', this)">
+        <span class="nav-icon">⟿</span> Call Flows
+      </div>
+      <div class="nav-item" onclick="showPage('routing', this)">
+        <span class="nav-icon">⊕</span> Routing Rules
+      </div>
+      <div class="nav-section">Versions</div>
+      <div class="nav-item" onclick="showPage('diff', this)">
+        <span class="nav-icon">⊞</span> v1 → v2 Diff
+      </div>
+      <div class="nav-section">Pipeline</div>
+      <div class="nav-item" onclick="showPage('run', this)">
+        <span class="nav-icon">▷</span> Run Pipeline
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="api-status">
+        <div class="dot"></div>
+        Zero-cost mode active
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="page-title">Dashboard</div>
+      <div class="topbar-actions">
+        <div class="ver-switch">
+          <button class="version-btn active-ver" id="ver-btn-v1" onclick="switchVersion('v1')">v1</button>
+          <button class="version-btn" id="ver-btn-v2" onclick="switchVersion('v2')">v2</button>
+        </div>
+        <button class="btn btn-ghost" onclick="exportAll()">↓ Export All</button>
+        <button class="btn btn-primary" onclick="showPage('run', document.querySelector('.nav-item:last-child'))">▷ Run Pipeline</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ── DASHBOARD ── -->
+      <div id="page-dashboard" class="page active">
+        <div class="stats-row">
+          <div class="stat-card accent">
+            <div class="stat-num">1</div>
+            <div class="stat-label">Accounts Processed</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-num">2</div>
+            <div class="stat-label">Agent Versions Ready</div>
+          </div>
+          <div class="stat-card warn">
+            <div class="stat-num" id="stat-unknowns">0</div>
+            <div class="stat-label">Open Unknowns</div>
+          </div>
+          <div class="stat-card danger">
+            <div class="stat-num">12</div>
+            <div class="stat-label">v1 → v2 Changes</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Active Account</div>
+            <span class="badge badge-v1" id="av-version">v1</span>
+          </div>
+          <div class="grid-2">
+            <div>
+              <div class="field">
+                <div class="field-label">Company</div>
+                <div class="field-value" style="font-size:20px;font-weight:800;" id="dash-company">Ben's Electric Solutions</div>
+              </div>
+              <div class="field">
+                <div class="field-label">Business Type</div>
+                <div class="field-value" id="dash-type">Electrical service provider</div>
+              </div>
+              <div class="field">
+                <div class="field-label">Contact</div>
+                <div class="field-value" id="dash-contact">Ben</div>
+              </div>
+              <div class="field">
+                <div class="field-label">Email</div>
+                <div class="field-value mono" id="dash-email">info@benselectricsolutionsteam.com</div>
+              </div>
+            </div>
+            <div>
+              <div class="field">
+                <div class="field-label">Business Hours</div>
+                <div class="field-value" id="dash-hours">Mon–Fri, 8:30 AM – 5:00 PM</div>
+              </div>
+              <div class="field">
+                <div class="field-label">Timezone</div>
+                <div class="field-value mono" id="dash-tz">America/Edmonton (inferred)</div>
+              </div>
+              <div class="field">
+                <div class="field-label">After-Hours Emergency</div>
+                <div class="field-value" id="dash-emergency">
+                  <span class="badge badge-warn">Restricted — G&amp;M Pressure Washing only</span>
+                </div>
+              </div>
+              <div class="field">
+                <div class="field-label">Transfer Number</div>
+                <div class="field-value" id="dash-transfer">
+                  <span class="badge badge-warn">Pending — second number not yet provided</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Open Unknowns — Action Required</div>
+            <span class="badge badge-warn">3 items</span>
+          </div>
+          <div id="unknowns-list">
+            <div class="unknown-item">
+              <span class="unknown-icon">⚠</span>
+              Ben's second phone number for direct call transfers (pending — to be shared via email)
+            </div>
+            <div class="unknown-item">
+              <span class="unknown-icon">⚠</span>
+              Ben's main phone number for SMS notifications (not explicitly stated in transcript)
+            </div>
+            <div class="unknown-item">
+              <span class="unknown-icon">⚠</span>
+              Exact timezone not confirmed (inferred from area code 403 as America/Edmonton)
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Pipeline Status</div>
+          </div>
+          <div class="grid-3">
+            <div class="rule-block">
+              <div class="rule-header">
+                <span style="font-size:18px">📄</span>
+                <div class="rule-title">Transcript</div>
+              </div>
+              <span class="badge badge-ok">✓ Ingested</span>
+              <div style="margin-top:8px;font-size:12px;color:var(--muted);">onboarding_bens-electric-solutions.docx</div>
+            </div>
+            <div class="rule-block">
+              <div class="rule-header">
+                <span style="font-size:18px">🧠</span>
+                <div class="rule-title">Extraction</div>
+              </div>
+              <span class="badge badge-ok">✓ Complete</span>
+              <div style="margin-top:8px;font-size:12px;color:var(--muted);">Rule-based (zero-cost mode)</div>
+            </div>
+            <div class="rule-block">
+              <div class="rule-header">
+                <span style="font-size:18px">🤖</span>
+                <div class="rule-title">Agent Spec</div>
+              </div>
+              <span class="badge badge-v1">v1 Ready</span>
+              <div style="margin-top:8px;font-size:12px;color:var(--muted);">Prompt + config generated</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ACCOUNT MEMO ── -->
+      <div id="page-account" class="page">
+        <div class="section-title">Account Memo</div>
+        <div class="section-sub">Structured configuration extracted from onboarding call</div>
+
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab(this, 'memo-structured')">Structured View</div>
+          <div class="tab" onclick="switchTab(this, 'memo-json')">Raw JSON</div>
+        </div>
+
+        <div id="memo-structured">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header"><div class="card-title">Identity</div></div>
+              <div class="field"><div class="field-label">Account ID</div><div class="field-value mono" id="sf-account-id">—</div></div>
+              <div class="field"><div class="field-label">Company Name</div><div class="field-value" id="sf-company">—</div></div>
+              <div class="field"><div class="field-label">Business Type</div><div class="field-value" id="sf-type">—</div></div>
+              <div class="field"><div class="field-label">Contact Name</div><div class="field-value" id="sf-contact">—</div></div>
+              <div class="field"><div class="field-label">Contact Email</div><div class="field-value mono" id="sf-email">—</div></div>
+              <div class="field"><div class="field-label">Contact Phone</div><div class="field-value" id="sf-phone">—</div></div>
+              <div class="field"><div class="field-label">Office Address</div><div class="field-value" id="sf-address">—</div></div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">Business Hours</div></div>
+              <div class="field"><div class="field-label">Days</div><div class="field-value" id="sf-days">—</div></div>
+              <div class="field"><div class="field-label">Start Time</div><div class="field-value" id="sf-start">—</div></div>
+              <div class="field"><div class="field-label">End Time</div><div class="field-value" id="sf-end">—</div></div>
+              <div class="field"><div class="field-label">Timezone</div><div class="field-value mono" id="sf-tz">—</div></div>
+              <hr class="divider">
+              <div class="card-header"><div class="card-title">Services Supported</div></div>
+              <div id="sf-services"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Pricing Information</div></div>
+            <div class="grid-3">
+              <div class="field"><div class="field-label">Service Call Fee</div><div class="field-value" style="font-size:22px;font-weight:800;color:var(--accent2);" id="sf-fee">—</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">Callout to job site</div></div>
+              <div class="field"><div class="field-label">Residential Hourly</div><div class="field-value" style="font-size:16px;font-weight:800;color:var(--accent2);" id="sf-hourly">—</div></div>
+              <div class="field"><div class="field-label">Commercial Hourly</div><div class="field-value" style="font-size:16px;font-weight:800;color:var(--accent2);" id="sf-commercial">—</div></div>
+            </div>
+            <div class="field" style="margin-top:8px;"><div class="field-label">Mention to Caller</div><div class="field-value" id="sf-pricing-note">—</div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Notifications</div></div>
+            <div class="grid-2">
+              <div class="field"><div class="field-label">Email</div><div class="field-value mono" id="sf-email-notif">—</div></div>
+              <div class="field"><div class="field-label">SMS Number</div><div class="field-value mono" id="sf-sms-notif">—</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Open Unknowns</div></div>
+            <div id="sf-unknowns"></div>
+          </div>
+        </div>
+
+        <div id="memo-json" style="display:none;">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">account_memo.json</div>
+              <button class="copy-btn" onclick="copyJson('memo-json-content')">Copy</button>
+            </div>
+            <pre class="prompt-box" id="memo-json-content"></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── AGENT SPEC ── -->
+      <div id="page-agent" class="page">
+        <div class="section-title">Retell Agent Spec</div>
+        <div class="section-sub">Generated voice agent configuration — ready for Retell import</div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Agent Configuration</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span class="badge badge-v1">v1</span>
+              <button class="copy-btn" onclick="copyJson('agent-prompt-content')">Copy Prompt</button>
+            </div>
+          </div>
+          <div class="grid-2" style="margin-bottom:20px;">
+            <div>
+              <div class="field"><div class="field-label">Agent Name</div><div class="field-value">Clara - Ben's Electric Solutions</div></div>
+              <div class="field"><div class="field-label">Voice Style</div><div class="field-value">Warm, professional, concise</div></div>
+              <div class="field"><div class="field-label">Persona</div><div class="field-value">Clara (professional answering assistant)</div></div>
+              <div class="field"><div class="field-label">Suggested Voice</div><div class="field-value mono">Olivia</div></div>
+            </div>
+            <div>
+              <div class="field"><div class="field-label">Transfer Number</div><div class="field-value" id="av-transfer">—</div></div>
+              <div class="field"><div class="field-label">Transfer Timeout</div><div class="field-value mono" id="av-timeout">—</div></div>
+              <div class="field"><div class="field-label">Emergency Routing</div><div class="field-value"><span class="badge badge-warn">Restricted (G&amp;M only)</span></div></div>
+              <div class="field"><div class="field-label">Language</div><div class="field-value mono" id="av-tz">—</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">System Prompt</div>
+            <button class="copy-btn" onclick="copyText('agent-prompt-content')">Copy</button>
+          </div>
+          <pre class="prompt-box" id="agent-prompt-content">Loading...</pre>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Retell Import Instructions</div>
+          </div>
+          <div style="font-size:13px;line-height:1.8;color:var(--muted);">
+            <p style="margin-bottom:12px;color:var(--text);">Since Retell's API requires a paid tier, follow these manual steps to deploy:</p>
+            <div class="flow">
+              <div class="flow-step">
+                <div class="flow-num">1</div>
+                <div class="flow-content"><div class="flow-title">Log in to Retell</div><div class="flow-desc">Go to app.retellai.com → Agents → Create New Agent</div></div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-num">2</div>
+                <div class="flow-content"><div class="flow-title">Set Agent Name</div><div class="flow-desc">Use: <code style="color:var(--accent2);">Clara - Ben's Electric Solutions</code></div></div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-num">3</div>
+                <div class="flow-content"><div class="flow-title">Paste System Prompt</div><div class="flow-desc">Copy the full prompt above and paste into the "System Prompt" field in Retell</div></div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-num">4</div>
+                <div class="flow-content"><div class="flow-title">Set Transfer Number</div><div class="flow-desc">Add Ben's number once it's confirmed — currently pending</div></div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-num">5</div>
+                <div class="flow-content"><div class="flow-title">Configure Voice</div><div class="flow-desc">Select "Olivia" or similar warm English female voice</div></div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-num">6</div>
+                <div class="flow-content"><div class="flow-title">Test & Verify</div><div class="flow-desc">Make test calls — check dashboard for call logs and email/SMS notifications</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CALL FLOWS ── -->
+      <div id="page-flows" class="page">
+        <div class="section-title">Call Flow Logic</div>
+        <div class="section-sub">Step-by-step routing for office hours and after-hours calls</div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Office Hours Flow</div>
+              <span class="badge badge-ok">Active</span>
+            </div>
+            <div class="flow">
+              <div class="flow-step"><div class="flow-num">1</div><div class="flow-content"><div class="flow-title">Greeting</div><div class="flow-desc">"Thank you for calling Ben's Electric Solutions. This is Clara, how can I help you today?"</div></div></div>
+              <div class="flow-step"><div class="flow-num">2</div><div class="flow-content"><div class="flow-title">Understand Purpose</div><div class="flow-desc">Listen to caller's reason. Do not interrupt.</div></div></div>
+              <div class="flow-step"><div class="flow-num">3</div><div class="flow-content"><div class="flow-title">Collect Name & Number</div><div class="flow-desc">"May I get your name and the best number to reach you?"</div></div></div>
+              <div class="flow-step"><div class="flow-num">4</div><div class="flow-content"><div class="flow-title">Transfer to Ben</div><div class="flow-desc">"Let me connect you now, please hold." → Initiate transfer to Ben's number.</div></div></div>
+              <div class="flow-step"><div class="flow-num">5</div><div class="flow-content"><div class="flow-title">If Transfer Fails</div><div class="flow-desc">"I'm sorry, I wasn't able to connect you. I've noted your details and Ben will follow up soon."</div></div></div>
+              <div class="flow-step"><div class="flow-num">6</div><div class="flow-content"><div class="flow-title">Pricing (if asked)</div><div class="flow-desc">$115 callout fee + $98/hr in 30-min increments. Only mention if caller asks.</div></div></div>
+              <div class="flow-step"><div class="flow-num">7</div><div class="flow-content"><div class="flow-title">Close</div><div class="flow-desc">"Is there anything else I can help you with?" → "Thank you for calling. Have a great day!"</div></div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">After-Hours Flow</div>
+              <span class="badge badge-warn">Restricted Emergency</span>
+            </div>
+            <div class="flow">
+              <div class="flow-step"><div class="flow-num">1</div><div class="flow-content"><div class="flow-title">Greeting</div><div class="flow-desc">"Thank you for calling. Our office is currently closed. Mon–Fri, 8:30–5:00. How can I assist you?"</div></div></div>
+              <div class="flow-step"><div class="flow-num">2</div><div class="flow-content"><div class="flow-title">Understand Purpose</div><div class="flow-desc">Listen to caller's reason.</div></div></div>
+              <div class="flow-step"><div class="flow-num">3</div><div class="flow-content"><div class="flow-title">Confirm Emergency</div><div class="flow-desc">"Is this an emergency situation that requires immediate assistance tonight?"</div></div></div>
+              <div class="flow-step"><div class="flow-num">4a</div><div class="flow-content"><div class="flow-title">IF Emergency + G&M Client</div><div class="flow-desc">Collect name, phone, property address immediately → Transfer to Ben → If fails: assure urgent callback.</div></div></div>
+              <div class="flow-step"><div class="flow-num">4b</div><div class="flow-content"><div class="flow-title">IF Emergency + Other Caller</div><div class="flow-desc">"We don't have after-hours coverage for new calls. I've noted your details — someone will reach out first thing in the morning."</div></div></div>
+              <div class="flow-step"><div class="flow-num">4c</div><div class="flow-content"><div class="flow-title">IF Not Emergency</div><div class="flow-desc">Collect name, number, brief description → "We'll follow up with you next business day."</div></div></div>
+              <div class="flow-step"><div class="flow-num">5</div><div class="flow-content"><div class="flow-title">Close</div><div class="flow-desc">"Is there anything else I can help you with?" → Thank them, close warmly.</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ROUTING RULES ── -->
+      <div id="page-routing" class="page">
+        <div class="section-title">Routing Rules</div>
+        <div class="section-sub">Emergency and non-emergency routing configuration</div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Emergency Routing</div>
+            <span class="badge badge-warn">Enabled — Restricted</span>
+          </div>
+          <div class="rule-block">
+            <div class="rule-header">
+              <span style="color:var(--warn)">⚡</span>
+              <div class="rule-title">Emergency Definition</div>
+            </div>
+            <div style="font-size:13px;color:var(--muted);">After-hours electrical emergency at a managed gas station property — G&M Pressure Washing clients only.</div>
+          </div>
+
+          <div class="rule-block">
+            <div class="rule-header">
+              <span style="color:var(--accent2)">✓</span>
+              <div class="rule-title">Approved Emergency Clients</div>
+            </div>
+            <div id="emergency-clients"></div>
+          </div>
+
+          <div class="rule-block">
+            <div class="rule-header">
+              <span style="color:var(--muted)">→</span>
+              <div class="rule-title">Transfer Protocol</div>
+            </div>
+            <div class="field"><div class="field-label">Transfer To</div><div class="field-value"><span class="badge badge-warn">Ben's personal number — PENDING</span></div></div>
+            <div class="field"><div class="field-label">Timeout</div><div class="field-value mono">30 seconds</div></div>
+            <div class="field"><div class="field-label">Fallback</div><div class="field-value" style="font-size:13px;color:var(--muted);">Collect name, number, property address. Apologize. Assure Ben calls back urgently.</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Non-Emergency Routing</div>
+          </div>
+          <div class="grid-2">
+            <div class="rule-block">
+              <div class="rule-header"><span>🕐</span><div class="rule-title">After-Hours General</div></div>
+              <div class="field"><div class="field-label">Action</div><div class="field-value">Collect details → callback</div></div>
+              <div class="field"><div class="field-label">Timeframe</div><div class="field-value">Next business day during office hours</div></div>
+            </div>
+            <div class="rule-block">
+              <div class="rule-header"><span>☀️</span><div class="rule-title">Office Hours General</div></div>
+              <div class="field"><div class="field-label">Action</div><div class="field-value">Collect name + number → Transfer to Ben</div></div>
+              <div class="field"><div class="field-label">Fallback</div><div class="field-value">Take message → same-day callback</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Integration Constraints</div></div>
+          <div id="integration-constraints"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Call Setup Notes</div></div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.7;">
+            Ben uses an Android device. Initially Clara is set up via conditional call forwarding — calls forward to Clara only when Ben doesn't answer or declines. Once his second personal number is active, Clara becomes the primary point of contact with warm transfer capability.
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DIFF VIEWER ── -->
+      <div id="page-diff" class="page">
+        <div class="section-title">Version Diff: v1 → v2</div>
+        <div class="section-sub">Changes applied during onboarding update</div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">v1 → v2 Changelog</div>
+            <span class="badge badge-ok" id="diff-count">12 changes</span>
+          </div>
+          <div style="border-radius:8px;overflow:hidden;border:1px solid var(--border);">
+            <div class="diff-row" style="background:var(--surface2);grid-template-columns:220px 1fr 1fr 1fr;">
+              <div class="diff-cell" style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Field</div>
+              <div class="diff-cell" style="font-family:var(--mono);font-size:10px;color:var(--danger);text-transform:uppercase;letter-spacing:1px;">v1 Value</div>
+              <div class="diff-cell" style="font-family:var(--mono);font-size:10px;color:var(--accent2);text-transform:uppercase;letter-spacing:1px;">v2 Value</div>
+              <div class="diff-cell" style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Reason</div>
+            </div>
+            <div id="diff-rows" style="display:contents;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RUN PIPELINE ── -->
+      <div id="page-run" class="page">
+        <div class="section-title">Run Pipeline</div>
+        <div class="section-sub">Process a new transcript or onboarding update</div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Pipeline A — New Account (v1)</div>
+              <span class="badge badge-v1">Demo / Onboarding</span>
+            </div>
+            <div style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">
+              Upload a demo call transcript or onboarding call transcript to generate a new v1 account memo and agent spec.
+            </div>
+            <div class="upload-zone" onclick="document.getElementById('file-a').click()">
+              <div class="upload-icon">📄</div>
+              <div class="upload-title">Drop transcript here</div>
+              <div class="upload-sub">.txt, .docx, or .md — max 10MB</div>
+              <input type="file" id="file-a" accept=".txt,.docx,.md" style="display:none" onchange="handleFileA(this)">
+            </div>
+            <div id="file-a-name" style="margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted);"></div>
+            <div style="margin-top:16px;">
+              <div class="field">
+                <div class="field-label">Source Type</div>
+                <select id="source-type-a" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-family:var(--sans);font-size:13px;width:100%;">
+                  <option value="demo_call">Demo Call</option>
+                  <option value="onboarding_call" selected>Onboarding Call</option>
+                  <option value="onboarding_form">Onboarding Form</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-top:16px;">
+              <div class="field-label" style="margin-bottom:8px;">Command</div>
+              <pre style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px;font-family:var(--mono);font-size:11px;color:var(--accent2);">python3 scripts/local_pipeline.py \
+  --transcript data/&lt;file&gt;.docx \
+  --source-type onboarding_call</pre>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Pipeline B — Update Account (v2)</div>
+              <span class="badge badge-v2">Onboarding Update</span>
+            </div>
+            <div style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">
+              Upload onboarding call or form data to patch an existing v1 account and generate v2 with changelog.
+            </div>
+            <div class="upload-zone">
+              <div class="upload-icon">🔄</div>
+              <div class="upload-title">Drop onboarding update here</div>
+              <div class="upload-sub">.txt, .docx, or .md — max 10MB</div>
+            </div>
+            <div style="margin-top:16px;">
+              <div class="field-label" style="margin-bottom:8px;">Command</div>
+              <pre style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px;font-family:var(--mono);font-size:11px;color:var(--accent2);">python3 scripts/local_pipeline.py \
+  --transcript data/onboarding_&lt;account&gt;.docx \
+  --pipeline B \
+  --v1-memo outputs/accounts/&lt;id&gt;/v1/account_memo.json</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Batch Runner</div>
+          </div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Process all transcripts in a dataset folder at once.</div>
+          <pre style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:16px;font-family:var(--mono);font-size:12px;color:var(--accent2);line-height:1.8;"># Process all accounts in dataset folder
+python3 scripts/batch_run.py --dataset ./data
+
+# Process a single account
+python3 scripts/batch_run.py --dataset ./data --account bens-electric-solutions
+
+# With Claude API (optional — for better extraction)
+ANTHROPIC_API_KEY=your_key python3 scripts/local_pipeline.py --transcript ...</pre>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Dataset File Naming Convention</div></div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.8;">
+            <div style="margin-bottom:8px;">Name your transcript files as follows for the batch runner to pair them correctly:</div>
+            <pre style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px;font-family:var(--mono);font-size:11px;color:var(--text);line-height:2;">data/
+  demo_acme-fire-protection.docx        ← Pipeline A (demo)
+  onboarding_acme-fire-protection.docx  ← Pipeline B (onboarding update)
+  demo_metro-hvac.txt
+  onboarding_metro-hvac.txt
+  some-company.docx                     ← treated as onboarding-only</pre>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Live Data (auto-generated from pipeline outputs) ──────────────────────────
+const MEMO_V1 = {
+  "account_id": "ben-s-electric-solutions",
+  "company_name": "Ben's Electric Solutions",
+  "contact_name": "Ben",
+  "contact_email": "info@benlectricsolutionsteam.com",
+  "contact_phone": null,
+  "business_type": "Electrical service provider",
+  "business_hours": {
+    "days": "Monday to Friday",
+    "start": "8",
+    "end": "4:30",
+    "timezone": "America/Edmonton (inferred)"
+  },
+  "office_address": null,
+  "services_supported": [
+    "Residential electrical service calls",
+    "Commercial electrical service",
+    "Emergency electrical (select clients only)"
+  ],
+  "pricing_info": {
+    "service_call_fee": "$115",
+    "hourly_rate": "$98/hour",
+    "notes": "$115 call-out fee gets technician to job site. Hourly starts after arrival.",
+    "mention_to_caller": "only_if_asked"
+  },
+  "call_routing": {
+    "office_hours_transfer_to": "Ben (owner)",
+    "transfer_phone_number": null,
+    "transfer_setup_notes": "Ben uses Android. Call forwarding set up: if Ben doesn't answer, forward to Clara. Second personal number pending \u2014 will be used for direct transfers once active."
+  },
+  "emergency_definition": [
+    "After-hours electrical emergency at a managed gas station property (G&M Pressure Washing clients only)"
+  ],
+  "emergency_routing_rules": {
+    "enabled": true,
+    "allowed_clients": [
+      {
+        "company": "G&M Pressure Washing",
+        "contact_name": "Shelley Manley",
+        "phone": "403-870-8494",
+        "email": "gm_pressurewash@yahoo.ca",
+        "property_type": "Gas stations (Chevron and Esso)",
+        "notes": "Property manager overseeing ~20 gas stations. Emergency calls should be transferred directly to Ben."
+      }
+    ],
+    "transfer_to": "Ben's personal number (pending)",
+    "fallback_if_transfer_fails": "Collect caller name, number, and property address. Apologize and assure Ben will call back urgently."
+  },
+  "non_emergency_routing_rules": {
+    "after_hours_action": "collect_and_callback",
+    "callback_timeframe": "Next business day during office hours"
+  },
+  "call_transfer_rules": {
+    "transfer_timeout_seconds": 30,
+    "retry_on_fail": false,
+    "what_to_say_if_transfer_fails": "I'm sorry, I wasn't able to connect you right now. I've noted your details and Ben will follow up with you as soon as possible."
+  },
+  "integration_constraints": [],
+  "notification_preferences": {
+    "email": "info@benlectricsolutionsteam.com",
+    "sms_number": "Ben's main line (same as business line \u2014 to be confirmed)"
+  },
+  "after_hours_flow_summary": "For general callers, collect details and promise next-business-day callback. For G&M Pressure Washing emergency calls, immediately collect name/number/address and transfer to Ben.",
+  "office_hours_flow_summary": "Greet caller, understand purpose, collect name and number. Transfer to Ben if he's available; if not, take message and assure same-day callback. Mention $115 service call fee only if asked.",
+  "questions_or_unknowns": [
+    "Ben's second phone number for direct call transfers (pending \u2014 to be shared via email)",
+    "Ben's main phone number for SMS notifications (not explicitly stated in transcript)",
+    "Exact timezone not confirmed (inferred from area code 403 as America/Edmonton)"
+  ],
+  "notes": "Ben is sole operator. Using Android with call forwarding. Initially Clara answers on missed/declined calls. Once second number is active, Clara will be primary with transfer capability. Pricing should not be proactively mentioned.",
+  "extraction_source": "onboarding_call",
+  "version": "v1",
+  "_meta": {
+    "created_at": "2026-03-04T05:17:50.023950+00:00",
+    "source_file": "onboarding_bens-electric-solutions.docx"
+  }
+};
+const MEMO_V2 = {
+  "account_id": "ben-s-electric-solutions",
+  "company_name": "Ben's Electric Solutions",
+  "contact_name": "Ben",
+  "contact_email": "info@benlectricsolutionsteam.com",
+  "contact_phone": null,
+  "business_type": "Electrical service provider",
+  "business_hours": {
+    "days": "Monday to Friday",
+    "start": "8:30 AM",
+    "end": "5:00 PM",
+    "timezone": "America/Edmonton"
+  },
+  "office_address": "Calgary, Alberta, Canada (mobile operation \u2014 no fixed client-facing address)",
+  "services_supported": [
+    "Residential electrical service calls",
+    "Commercial electrical service",
+    "Emergency electrical (select clients only)"
+  ],
+  "pricing_info": {
+    "service_call_fee": "$115",
+    "hourly_rate": "$98/hour",
+    "notes": "$115 call-out fee gets technician to job site. Hourly starts after arrival. Commercial rate: $115/hour.",
+    "mention_to_caller": "only_if_asked",
+    "commercial_hourly_rate": "$115/hour"
+  },
+  "call_routing": {
+    "office_hours_transfer_to": "Ben (owner)",
+    "transfer_phone_number": "403-555-0192",
+    "transfer_setup_notes": "Ben uses Android. Call forwarding set up: if Ben doesn't answer, forward to Clara. Second personal number pending \u2014 will be used for direct transfers once active."
+  },
+  "emergency_definition": [
+    "After-hours electrical emergency at a managed gas station property (G&M Pressure Washing clients only)"
+  ],
+  "emergency_routing_rules": {
+    "enabled": true,
+    "allowed_clients": [
+      {
+        "company": "G&M Pressure Washing",
+        "contact_name": "Shelley Manley",
+        "phone": "403-870-8494",
+        "email": "gm_pressurewash@yahoo.ca",
+        "property_type": "Gas stations (Chevron and Esso)",
+        "notes": "Property manager overseeing ~20 gas stations. Emergency calls should be transferred directly to Ben."
+      },
+      {
+        "company": "Northland Property Management",
+        "contact_name": "Dave Kowalski",
+        "phone": "403-555-0288",
+        "email": null,
+        "property_type": "Commercial strip malls and office buildings",
+        "notes": "Dave may call after hours for urgent electrical faults in tenant spaces."
+      }
+    ],
+    "transfer_to": "403-555-0192",
+    "fallback_if_transfer_fails": "Collect caller name, number, and property address. Apologize and assure Ben will call back urgently."
+  },
+  "non_emergency_routing_rules": {
+    "after_hours_action": "collect_and_callback",
+    "callback_timeframe": "Next business day during office hours"
+  },
+  "call_transfer_rules": {
+    "transfer_timeout_seconds": 45,
+    "retry_on_fail": false,
+    "what_to_say_if_transfer_fails": "I'm sorry, I wasn't able to connect you right now. I've noted your details and Ben will follow up with you as soon as possible."
+  },
+  "integration_constraints": [
+    "Never create or modify ServiceTrade jobs directly. All job creation handled manually by Ben."
+  ],
+  "notification_preferences": {
+    "email": "info@benlectricsolutionsteam.com",
+    "sms_number": "403-555-0147"
+  },
+  "after_hours_flow_summary": "For general callers, collect details and promise next-business-day callback. For G&M Pressure Washing emergency calls, immediately collect name/number/address and transfer to Ben.",
+  "office_hours_flow_summary": "Greet caller, understand purpose, collect name and number. Transfer to Ben if he's available; if not, take message and assure same-day callback. Mention $115 service call fee only if asked.",
+  "questions_or_unknowns": [],
+  "notes": "Ben is sole operator. Using Android with call forwarding. Initially Clara answers on missed/declined calls. Once second number is active, Clara will be primary with transfer capability. Pricing should not be proactively mentioned.",
+  "extraction_source": "onboarding_call",
+  "version": "v2",
+  "_meta": {
+    "created_at": "2026-03-04T05:17:50.023950+00:00",
+    "source_file": "onboarding_bens-electric-solutions.docx",
+    "updated_at": "2026-03-04T05:45:56.778855+00:00",
+    "update_source_file": "onboarding_update_bens-electric-solutions.txt",
+    "pipeline": "B",
+    "version": "v2"
+  }
+};
+const CHANGELOG = [
+  {
+    "field": "business_hours.end",
+    "old_value": "4:30",
+    "new_value": "5:00 PM",
+    "reason": "Client confirmed 5:00 PM end time \u2014 website listing was outdated"
+  },
+  {
+    "field": "business_hours.start",
+    "old_value": "8",
+    "new_value": "8:30 AM",
+    "reason": "Client confirmed 8:30 AM start time \u2014 website listing was outdated"
+  },
+  {
+    "field": "business_hours.timezone",
+    "old_value": "America/Edmonton (inferred)",
+    "new_value": "America/Edmonton",
+    "reason": "Timezone explicitly confirmed by client (Calgary, Alberta)"
+  },
+  {
+    "field": "call_routing.transfer_phone_number",
+    "old_value": "null",
+    "new_value": "403-555-0192",
+    "reason": "Ben's second personal number confirmed during onboarding follow-up"
+  },
+  {
+    "field": "call_transfer_rules.transfer_timeout_seconds",
+    "old_value": "30",
+    "new_value": "45",
+    "reason": "Client requested longer timeout to give more time to answer"
+  },
+  {
+    "field": "emergency_routing_rules.allowed_clients",
+    "old_value": "[{'company': 'G&M Pressure Washing', 'contact_name': 'Shelley Manley', 'phone': '403-870-8494', 'email': 'gm_pressurewash@yahoo.ca', 'property_type': 'Gas stations (Chevron and Esso)', 'notes': 'Property manager overseeing ~20 gas stations. Emergency calls should be transferred directly to Ben.'}]",
+    "new_value": "[{'company': 'G&M Pressure Washing', 'contact_name': 'Shelley Manley', 'phone': '403-870-8494', 'email': 'gm_pressurewash@yahoo.ca', 'property_type': 'Gas stations (Chevron and Esso)', 'notes': 'Property manager overseeing ~20 gas stations. Emergency calls should be transferred directly to Ben.'}, {'company': 'Northland Property Management', 'contact_name': 'Dave Kowalski', 'phone': '403-555-0288', 'email': None, 'property_type': 'Commercial strip malls and office buildings', 'notes': 'Dave may call after hours for urgent electrical faults in tenant spaces.'}]",
+    "reason": "Additional emergency client added: Northland Property Management"
+  },
+  {
+    "field": "emergency_routing_rules.transfer_to",
+    "old_value": "Ben's personal number (pending)",
+    "new_value": "403-555-0192",
+    "reason": "Updated during onboarding follow-up"
+  },
+  {
+    "field": "integration_constraints",
+    "old_value": "[]",
+    "new_value": "[\"Never create or modify ServiceTrade jobs directly. All job creation handled manually by Ben.\"]",
+    "reason": "Client specified ServiceTrade must not be touched by Clara"
+  },
+  {
+    "field": "office_address",
+    "old_value": "null",
+    "new_value": "Calgary, Alberta, Canada (mobile operation \u2014 no fixed client-facing address)",
+    "reason": "Client confirmed mobile operation \u2014 Calgary, Alberta"
+  },
+  {
+    "field": "pricing_info.commercial_hourly_rate",
+    "old_value": "null",
+    "new_value": "$115/hour",
+    "reason": "Commercial rate differs from residential \u2014 added per client"
+  },
+  {
+    "field": "pricing_info.notes",
+    "old_value": "$115 call-out fee gets technician to job site. Hourly starts after arrival.",
+    "new_value": "$115 call-out fee gets technician to job site. Hourly starts after arrival. Commercial rate: $115/hour.",
+    "reason": "Updated during onboarding follow-up"
+  },
+  {
+    "field": "questions_or_unknowns",
+    "old_value": "[\"Ben's second phone number for direct call transfers (pending \u2014 to be shared via email)\", \"Ben's main phone number for SMS notifications (not explicitly stated in transcript)\", \"Exact timezone not confirmed (inferred from area code 403 as America/Edmonton)\"]",
+    "new_value": "[]",
+    "reason": "Resolved unknowns from onboarding update"
+  }
+];
+const PROMPT_V1 = "# Clara Voice Agent \u2014 Ben's Electric Solutions\n\n## IDENTITY\nYou are Clara, a professional and friendly answering assistant for Ben's Electric Solutions. You handle inbound calls on behalf of the business. You are warm, concise, and efficient. You never mention that you are an AI, a bot, or that any automation is involved. You simply assist callers as a professional receptionist would.\n\n## BUSINESS INFORMATION\n- Company: Ben's Electric Solutions\n- Business Type: Electrical service provider\n- Business Hours: Monday to Friday, 8 \u2013 4:30 (America/Edmonton (inferred))\n- Services: Residential electrical service calls, Commercial electrical service, Emergency electrical (select clients only)\n\n## PRICING POLICY\nService call fee: $115. Hourly rate: $98/hour.\nIMPORTANT: Do NOT proactively mention pricing on every call. Only share pricing details if the caller specifically asks about fees, costs, or minimums.\n\n---\n\n## DURING OFFICE HOURS FLOW\n\n**Step 1 \u2014 Greeting**\nAnswer warmly: \"Thank you for calling Ben's Electric Solutions. This is Clara, how can I help you today?\"\n\n**Step 2 \u2014 Understand Purpose**\nListen carefully to why they're calling. Do not interrupt. Let them explain.\n\n**Step 3 \u2014 Collect Name and Number**\nSay: \"I'd be happy to help with that. May I get your name and the best number to reach you?\"\nCollect: first name (and last if offered), phone number.\n\n**Step 4 \u2014 Route / Transfer**\nAttempt to connect the caller to the right person.\nSay: \"Let me connect you now. Please hold for just a moment.\"\n[Initiate transfer]\n\n**Step 5 \u2014 If Transfer Fails**\nSay: \"I'm sorry, I wasn't able to connect you right now. I've noted your details and Ben will follow up with you as soon as possible.\"\nConfirm you have their name and number. Thank them for calling.\n\n**Step 6 \u2014 Pricing (only if asked)**\nIf caller asks about cost or fees, say:\n\"There is a $115 service call fee which covers the visit to your location. After that, time is billed in half-hour increments. Would you like to go ahead and schedule a visit?\"\n\n**Step 7 \u2014 Close**\nAsk: \"Is there anything else I can help you with today?\"\nIf no: \"Wonderful. Thank you for calling Ben's Electric Solutions. Have a great day!\"\n\n---\n\n## AFTER-HOURS FLOW\n\n**Step 1 \u2014 Greeting**\n\"Thank you for calling Ben's Electric Solutions. Our office is currently closed. Our regular hours are Monday to Friday, 8 to 4:30. This is Clara \u2014 I'm here to help. How can I assist you?\"\n\n**Step 2 \u2014 Understand Purpose**\nListen to why they're calling.\n\n**Step 3 \u2014 Confirm Emergency Status**\nAsk: \"Is this an emergency situation that requires immediate assistance tonight?\"\n\n**Step 4a \u2014 IF EMERGENCY**\nEmergency routing is enabled for specific clients only.\n\nIF the caller identifies themselves as being from G&M Pressure Washing:\n- Say: \"I understand this is urgent. Let me collect your details right away.\"\n- Collect IMMEDIATELY: full name, callback phone number, full property address or location.\n- Say: \"I'm connecting you now \u2014 please hold.\"\n- [Initiate emergency transfer to Ben]\n- IF TRANSFER FAILS: \"I wasn't able to connect you right away, but I've flagged this as urgent. Ben will call you back as soon as possible \u2014 typically within a few minutes.\"\n\nIF the caller is NOT from an approved emergency client:\n- Say: \"I'm sorry, we don't currently offer after-hours emergency service for new service calls. I've noted your information and someone will reach out first thing during business hours.\"\n- Collect name and callback number.\n\n\n**Step 4b \u2014 IF NOT EMERGENCY**\nSay: \"No problem at all. I'll make sure your message gets to the right person.\"\nCollect: name, callback number, brief description of what they need.\nConfirm: \"We'll follow up with you Next business day during office hours. You're all set.\"\n\n**Step 5 \u2014 Close**\nAsk: \"Is there anything else I can help you with?\"\nIf no: \"Thank you for calling Ben's Electric Solutions. Have a good {time_of_day}!\"\n\n---\n\n## TRANSFER PROTOCOL\n1. Inform caller: \"Let me connect you now, please hold.\"\n2. Initiate transfer silently.\n3. If transfer connects: hand off cleanly.\n4. If transfer fails after 30 seconds: proceed to fallback protocol.\n\n## FALLBACK PROTOCOL\n1. Apologize calmly: \"I'm sorry about that \u2014 I wasn't able to get through.\"\n2. Confirm you have their name and number.\n3. Assure callback: \"I've made a note and someone will be in touch with you soon.\"\n4. Do not put caller on hold again.\n5. Thank them and close.\n\n## CONSTRAINTS \u2014 NEVER DO THESE\n- Never say you are an AI, robot, bot, or automated system.\n- Never mention \"function calls\", \"tools\", \"API\", or any technical terms.\n- Never ask more than 2 questions in a row.\n- Never volunteer pricing unless asked.\n- Never promise a specific callback time you cannot guarantee.\n- Never transfer emergency calls to unverified callers after hours \u2014 verify company identity first.\n- Never leave the caller in silence for more than 5 seconds without an update.\n";
+const PROMPT_V2 = "# Clara Voice Agent \u2014 Ben's Electric Solutions\n\n## IDENTITY\nYou are Clara, a professional and friendly answering assistant for Ben's Electric Solutions. You handle inbound calls on behalf of the business. You are warm, concise, and efficient. You never mention that you are an AI, a bot, or that any automation is involved. You simply assist callers as a professional receptionist would.\n\n## BUSINESS INFORMATION\n- Company: Ben's Electric Solutions\n- Business Type: Electrical service provider\n- Business Hours: Monday to Friday, 8:30 AM \u2013 5:00 PM (CONFIRMATION)\n- Services: Residential electrical service calls, Commercial electrical service, Emergency electrical (select clients only)\n\n## PRICING POLICY\nService call fee: $115. Hourly rate: $98/hour.\nIMPORTANT: Do NOT proactively mention pricing on every call. Only share pricing details if the caller specifically asks about fees, costs, or minimums.\n\n---\n\n## DURING OFFICE HOURS FLOW\n\n**Step 1 \u2014 Greeting**\nAnswer warmly: \"Thank you for calling Ben's Electric Solutions. This is Clara, how can I help you today?\"\n\n**Step 2 \u2014 Understand Purpose**\nListen carefully to why they're calling. Do not interrupt. Let them explain.\n\n**Step 3 \u2014 Collect Name and Number**\nSay: \"I'd be happy to help with that. May I get your name and the best number to reach you?\"\nCollect: first name (and last if offered), phone number.\n\n**Step 4 \u2014 Route / Transfer**\nAttempt to connect the caller to the right person.\nSay: \"Let me connect you now. Please hold for just a moment.\"\n[Initiate transfer]\n\n**Step 5 \u2014 If Transfer Fails**\nSay: \"I'm sorry, I wasn't able to connect you right now. I've noted your details and Ben will follow up with you as soon as possible.\"\nConfirm you have their name and number. Thank them for calling.\n\n**Step 6 \u2014 Pricing (only if asked)**\nIf caller asks about cost or fees, say:\n\"There is a $115 service call fee which covers the visit to your location. After that, time is billed in half-hour increments. Would you like to go ahead and schedule a visit?\"\n\n**Step 7 \u2014 Close**\nAsk: \"Is there anything else I can help you with today?\"\nIf no: \"Wonderful. Thank you for calling Ben's Electric Solutions. Have a great day!\"\n\n---\n\n## AFTER-HOURS FLOW\n\n**Step 1 \u2014 Greeting**\n\"Thank you for calling Ben's Electric Solutions. Our office is currently closed. Our regular hours are Monday to Friday, 8:30 AM to 5:00 PM. This is Clara \u2014 I'm here to help. How can I assist you?\"\n\n**Step 2 \u2014 Understand Purpose**\nListen to why they're calling.\n\n**Step 3 \u2014 Confirm Emergency Status**\nAsk: \"Is this an emergency situation that requires immediate assistance tonight?\"\n\n**Step 4a \u2014 IF EMERGENCY**\nEmergency routing is enabled for specific clients only.\n\nIF the caller identifies themselves as being from G&M Pressure Washing or Northland Property Management:\n- Say: \"I understand this is urgent. Let me collect your details right away.\"\n- Collect IMMEDIATELY: full name, callback phone number, full property address or location.\n- Say: \"I'm connecting you now \u2014 please hold.\"\n- [Initiate emergency transfer to Ben]\n- IF TRANSFER FAILS: \"I wasn't able to connect you right away, but I've flagged this as urgent. Ben will call you back as soon as possible \u2014 typically within a few minutes.\"\n\nIF the caller is NOT from an approved emergency client:\n- Say: \"I'm sorry, we don't currently offer after-hours emergency service for new service calls. I've noted your information and someone will reach out first thing during business hours.\"\n- Collect name and callback number.\n\n\n**Step 4b \u2014 IF NOT EMERGENCY**\nSay: \"No problem at all. I'll make sure your message gets to the right person.\"\nCollect: name, callback number, brief description of what they need.\nConfirm: \"We'll follow up with you Next business day during office hours. You're all set.\"\n\n**Step 5 \u2014 Close**\nAsk: \"Is there anything else I can help you with?\"\nIf no: \"Thank you for calling Ben's Electric Solutions. Have a good {time_of_day}!\"\n\n---\n\n## TRANSFER PROTOCOL\n1. Inform caller: \"Let me connect you now, please hold.\"\n2. Initiate transfer silently.\n3. If transfer connects: hand off cleanly.\n4. If transfer fails after 30 seconds: proceed to fallback protocol.\n\n## FALLBACK PROTOCOL\n1. Apologize calmly: \"I'm sorry about that \u2014 I wasn't able to get through.\"\n2. Confirm you have their name and number.\n3. Assure callback: \"I've made a note and someone will be in touch with you soon.\"\n4. Do not put caller on hold again.\n5. Thank them and close.\n\n## CONSTRAINTS \u2014 NEVER DO THESE\n- Never say you are an AI, robot, bot, or automated system.\n- Never mention \"function calls\", \"tools\", \"API\", or any technical terms.\n- Never ask more than 2 questions in a row.\n- Never volunteer pricing unless asked.\n- Never promise a specific callback time you cannot guarantee.\n- Never transfer emergency calls to unverified callers after hours \u2014 verify company identity first.\n- Never leave the caller in silence for more than 5 seconds without an update.\n";
+const ACTIVE_VERSION = 'v2';
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let currentVersion = 'v2';
+
+function getMemo() { return currentVersion === 'v1' ? MEMO_V1 : MEMO_V2; }
+function getPrompt() { return currentVersion === 'v1' ? PROMPT_V1 : PROMPT_V2; }
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = { dashboard: 'Dashboard', account: 'Account Memo', agent: 'Agent Spec', flows: 'Call Flows', routing: 'Routing Rules', diff: 'v1 → v2 Diff', run: 'Run Pipeline' };
+  document.getElementById('page-title').textContent = titles[name] || name;
+  if (name === 'account') { renderAccountPage(); }
+  if (name === 'agent') { renderAgentPage(); }
+  if (name === 'diff') { renderDiffPage(); }
+  if (name === 'routing') { renderRoutingPage(); }
+  if (name === 'dashboard') { renderDashboard(); }
+}
+
+function switchVersion(v) {
+  currentVersion = v;
+  document.querySelectorAll('.version-btn').forEach(b => b.classList.remove('active-ver'));
+  document.getElementById('ver-btn-' + v).classList.add('active-ver');
+  renderAccountPage();
+  renderAgentPage();
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const memo = MEMO_V2;
+  document.getElementById('dash-company').textContent = memo.company_name;
+  document.getElementById('dash-type').textContent = memo.business_type;
+  document.getElementById('dash-contact').textContent = memo.contact_name || '—';
+  document.getElementById('dash-email').textContent = memo.contact_email || '—';
+  document.getElementById('dash-hours').textContent =
+    `${memo.business_hours.days}, ${memo.business_hours.start} – ${memo.business_hours.end}`;
+  document.getElementById('dash-tz').textContent = memo.business_hours.timezone;
+
+  // Emergency badge
+  const emEl = document.getElementById('dash-emergency');
+  const clients = memo.emergency_routing_rules.allowed_clients || [];
+  emEl.innerHTML = clients.length > 0
+    ? clients.map(c => `<span class="badge badge-warn">${c.company}</span>`).join(' ')
+    : '<span class="badge badge-ok">None configured</span>';
+
+  // Transfer badge
+  const trEl = document.getElementById('dash-transfer');
+  const num = memo.call_routing.transfer_phone_number;
+  trEl.innerHTML = num
+    ? `<span class="badge badge-ok">${num}</span>`
+    : '<span class="badge badge-warn">Pending</span>';
+
+  // Unknowns
+  const unknowns = memo.questions_or_unknowns || [];
+  const uEl = document.getElementById('unknowns-list');
+  document.getElementById('stat-unknowns').textContent = unknowns.length;
+  if (unknowns.length === 0) {
+    uEl.innerHTML = '<div style="color:var(--accent2);font-size:13px;padding:12px 0;">✓ All unknowns resolved in v2</div>';
+  } else {
+    uEl.innerHTML = unknowns.map(u =>
+      `<div class="unknown-item"><span class="unknown-icon">⚠</span>${u}</div>`).join('');
+  }
+}
+
+// ── Account Page ──────────────────────────────────────────────────────────────
+function renderAccountPage() {
+  const memo = getMemo();
+  const el = document.getElementById('memo-json-content');
+  if (el) el.textContent = JSON.stringify(memo, null, 2);
+
+  // Update structured view fields
+  const setField = (id, val) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (val === null || val === undefined) {
+      el.innerHTML = '<span class="null-val" style="color:var(--muted);font-style:italic;font-size:12px;">Not provided</span>';
+    } else {
+      el.textContent = val;
+    }
+  };
+
+  setField('sf-account-id', memo.account_id);
+  setField('sf-company', memo.company_name);
+  setField('sf-type', memo.business_type);
+  setField('sf-contact', memo.contact_name);
+  setField('sf-email', memo.contact_email);
+  setField('sf-phone', memo.contact_phone);
+  setField('sf-address', memo.office_address);
+  setField('sf-days', memo.business_hours.days);
+  setField('sf-start', memo.business_hours.start);
+  setField('sf-end', memo.business_hours.end);
+  setField('sf-tz', memo.business_hours.timezone);
+  setField('sf-fee', memo.pricing_info.service_call_fee);
+  setField('sf-hourly', memo.pricing_info.hourly_rate);
+  setField('sf-commercial', memo.pricing_info.commercial_hourly_rate || null);
+  setField('sf-pricing-note', memo.pricing_info.mention_to_caller);
+  setField('sf-email-notif', memo.notification_preferences.email);
+  setField('sf-sms-notif', memo.notification_preferences.sms_number);
+
+  // Services tags
+  const svcEl = document.getElementById('sf-services');
+  if (svcEl) svcEl.innerHTML = (memo.services_supported || []).map(s => `<span class="tag">${s}</span>`).join('');
+
+  // Unknowns
+  const uEl = document.getElementById('sf-unknowns');
+  const unknowns = memo.questions_or_unknowns || [];
+  if (uEl) {
+    if (unknowns.length === 0) {
+      uEl.innerHTML = '<div style="color:var(--accent2);font-size:13px;padding:4px 0;">✓ No open unknowns in this version</div>';
+    } else {
+      uEl.innerHTML = unknowns.map(u =>
+        `<div class="unknown-item"><span class="unknown-icon">⚠</span>${u}</div>`).join('');
+    }
+  }
+}
+
+// ── Agent Page ────────────────────────────────────────────────────────────────
+function renderAgentPage() {
+  const prompt = getPrompt();
+  const memo = getMemo();
+  const el = document.getElementById('agent-prompt-content');
+  if (el) el.textContent = prompt;
+
+  // Update key vars
+  const setField = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val || '—';
+  };
+  setField('av-transfer', memo.call_routing.transfer_phone_number || 'Pending');
+  setField('av-timeout', (memo.call_transfer_rules.transfer_timeout_seconds || 30) + ' seconds');
+  setField('av-tz', memo.business_hours.timezone);
+  setField('av-version', memo.version);
+}
+
+// ── Diff Page ─────────────────────────────────────────────────────────────────
+function renderDiffPage() {
+  const container = document.getElementById('diff-rows');
+  if (!container) return;
+  container.innerHTML = '';
+
+  CHANGELOG.forEach(entry => {
+    const row = document.createElement('div');
+    row.className = 'diff-row';
+    const oldTrunc = String(entry.old_value || 'null').length > 100
+      ? String(entry.old_value).substring(0, 100) + '…' : String(entry.old_value || 'null');
+    const newTrunc = String(entry.new_value || 'null').length > 100
+      ? String(entry.new_value).substring(0, 100) + '…' : String(entry.new_value || 'null');
+    row.innerHTML = `
+      <div class="diff-cell diff-field">${entry.field}</div>
+      <div class="diff-cell diff-old">${escHtml(oldTrunc)}</div>
+      <div class="diff-cell diff-new">${escHtml(newTrunc)}</div>
+      <div class="diff-cell" style="font-size:11px;color:var(--muted);padding:10px 14px;">${escHtml(entry.reason || '')}</div>
+    `;
+    container.appendChild(row);
+  });
+
+  document.getElementById('diff-count').textContent = CHANGELOG.length + ' changes';
+}
+
+// ── Routing Page ──────────────────────────────────────────────────────────────
+function renderRoutingPage() {
+  const memo = MEMO_V2;
+  const clients = memo.emergency_routing_rules.allowed_clients || [];
+  const container = document.getElementById('emergency-clients');
+  if (!container) return;
+  container.innerHTML = '';
+  clients.forEach(c => {
+    container.innerHTML += `
+      <div class="client-card" style="margin-bottom:12px;">
+        <div class="grid-2">
+          <div>
+            <div class="field"><div class="field-label">Company</div><div class="field-value">${c.company}</div></div>
+            <div class="field"><div class="field-label">Contact</div><div class="field-value">${c.contact_name || '—'}</div></div>
+            <div class="field"><div class="field-label">Phone</div><div class="field-value mono">${c.phone || '—'}</div></div>
+            ${c.email ? `<div class="field"><div class="field-label">Email</div><div class="field-value mono">${c.email}</div></div>` : ''}
+          </div>
+          <div>
+            <div class="field"><div class="field-label">Property Type</div><div class="field-value">${c.property_type || '—'}</div></div>
+            <div class="field"><div class="field-label">Notes</div><div class="field-value" style="font-size:12px;color:var(--muted);">${c.notes || '—'}</div></div>
+          </div>
+        </div>
+      </div>`;
+  });
+
+  // Integration constraints
+  const icEl = document.getElementById('integration-constraints');
+  const constraints = memo.integration_constraints || [];
+  if (icEl) {
+    icEl.innerHTML = constraints.length > 0
+      ? constraints.map(c => `<div class="unknown-item" style="border-color:rgba(108,99,255,0.2);background:rgba(108,99,255,0.05);color:var(--accent);"><span>⊘</span>${c}</div>`).join('')
+      : '<div style="color:var(--muted);font-size:13px;">None configured</div>';
+  }
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function switchTab(el, targetId) {
+  const parent = el.closest('.page');
+  parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const structured = document.getElementById('memo-structured');
+  const jsonView = document.getElementById('memo-json');
+  if (targetId === 'memo-structured') {
+    structured.style.display = 'block';
+    jsonView.style.display = 'none';
+  } else {
+    structured.style.display = 'none';
+    jsonView.style.display = 'block';
+  }
+  renderAccountPage();
+}
+
+function copyText(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+
+function copyJson(id) { copyText(id); }
+
+function exportAll() {
+  const data = {
+    account_memo_v1: MEMO_V1,
+    account_memo_v2: MEMO_V2,
+    agent_prompt_v1: PROMPT_V1,
+    agent_prompt_v2: PROMPT_V2,
+    changelog: CHANGELOG,
+    exported_at: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'clara_ben-s-electric-solutions_full.json';
+  a.click();
+}
+
+function handleFileA(input) {
+  const f = input.files[0];
+  if (f) {
+    document.getElementById('file-a-name').textContent = '✓ ' + f.name + ' (' + (f.size/1024).toFixed(1) + ' KB)';
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+// Default to v2 view (latest)
+switchVersion('v2');
+renderDashboard();
+renderRoutingPage();
+</script>
+</body>
+</html>

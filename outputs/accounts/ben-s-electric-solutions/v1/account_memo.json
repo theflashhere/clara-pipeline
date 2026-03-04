@@ -1,0 +1,77 @@
+{
+  "account_id": "ben-s-electric-solutions",
+  "company_name": "Ben's Electric Solutions",
+  "contact_name": "Ben",
+  "contact_email": "info@benlectricsolutionsteam.com",
+  "contact_phone": null,
+  "business_type": "Electrical service provider",
+  "business_hours": {
+    "days": "Monday to Friday",
+    "start": "8",
+    "end": "4:30",
+    "timezone": "America/Edmonton (inferred)"
+  },
+  "office_address": null,
+  "services_supported": [
+    "Residential electrical service calls",
+    "Commercial electrical service",
+    "Emergency electrical (select clients only)"
+  ],
+  "pricing_info": {
+    "service_call_fee": "$115",
+    "hourly_rate": "$98/hour",
+    "notes": "$115 call-out fee gets technician to job site. Hourly starts after arrival.",
+    "mention_to_caller": "only_if_asked"
+  },
+  "call_routing": {
+    "office_hours_transfer_to": "Ben (owner)",
+    "transfer_phone_number": null,
+    "transfer_setup_notes": "Ben uses Android. Call forwarding set up: if Ben doesn't answer, forward to Clara. Second personal number pending \u2014 will be used for direct transfers once active."
+  },
+  "emergency_definition": [
+    "After-hours electrical emergency at a managed gas station property (G&M Pressure Washing clients only)"
+  ],
+  "emergency_routing_rules": {
+    "enabled": true,
+    "allowed_clients": [
+      {
+        "company": "G&M Pressure Washing",
+        "contact_name": "Shelley Manley",
+        "phone": "403-870-8494",
+        "email": "gm_pressurewash@yahoo.ca",
+        "property_type": "Gas stations (Chevron and Esso)",
+        "notes": "Property manager overseeing ~20 gas stations. Emergency calls should be transferred directly to Ben."
+      }
+    ],
+    "transfer_to": "Ben's personal number (pending)",
+    "fallback_if_transfer_fails": "Collect caller name, number, and property address. Apologize and assure Ben will call back urgently."
+  },
+  "non_emergency_routing_rules": {
+    "after_hours_action": "collect_and_callback",
+    "callback_timeframe": "Next business day during office hours"
+  },
+  "call_transfer_rules": {
+    "transfer_timeout_seconds": 30,
+    "retry_on_fail": false,
+    "what_to_say_if_transfer_fails": "I'm sorry, I wasn't able to connect you right now. I've noted your details and Ben will follow up with you as soon as possible."
+  },
+  "integration_constraints": [],
+  "notification_preferences": {
+    "email": "info@benlectricsolutionsteam.com",
+    "sms_number": "Ben's main line (same as business line \u2014 to be confirmed)"
+  },
+  "after_hours_flow_summary": "For general callers, collect details and promise next-business-day callback. For G&M Pressure Washing emergency calls, immediately collect name/number/address and transfer to Ben.",
+  "office_hours_flow_summary": "Greet caller, understand purpose, collect name and number. Transfer to Ben if he's available; if not, take message and assure same-day callback. Mention $115 service call fee only if asked.",
+  "questions_or_unknowns": [
+    "Ben's second phone number for direct call transfers (pending \u2014 to be shared via email)",
+    "Ben's main phone number for SMS notifications (not explicitly stated in transcript)",
+    "Exact timezone not confirmed (inferred from area code 403 as America/Edmonton)"
+  ],
+  "notes": "Ben is sole operator. Using Android with call forwarding. Initially Clara answers on missed/declined calls. Once second number is active, Clara will be primary with transfer capability. Pricing should not be proactively mentioned.",
+  "extraction_source": "onboarding_call",
+  "version": "v1",
+  "_meta": {
+    "created_at": "2026-03-04T06:28:42.251724+00:00",
+    "source_file": "onboarding_bens-electric-solutions.docx"
+  }
+}

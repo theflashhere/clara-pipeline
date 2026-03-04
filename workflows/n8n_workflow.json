@@ -1,0 +1,120 @@
+{
+  "name": "Clara Answers Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "pipeline-a",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-pipeline-a",
+      "name": "Webhook: Pipeline A",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "clara-pipeline-a"
+    },
+    {
+      "parameters": {
+        "path": "pipeline-b",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-pipeline-b",
+      "name": "Webhook: Pipeline B",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 500],
+      "webhookId": "clara-pipeline-b"
+    },
+    {
+      "parameters": {
+        "command": "cd /home/clara-pipeline && python3 scripts/extract_memo.py --transcript '={{ $json.body.transcript_path }}' --pipeline A --source-type '={{ $json.body.source_type || \"onboarding_call\" }}'"
+      },
+      "id": "exec-pipeline-a",
+      "name": "Execute: Extract Memo v1",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "command": "cd /home/clara-pipeline && python3 scripts/generate_agent_spec.py --memo '={{ $json.memo_path }}'"
+      },
+      "id": "exec-gen-spec-v1",
+      "name": "Execute: Generate Agent Spec v1",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [750, 300]
+    },
+    {
+      "parameters": {
+        "command": "cd /home/clara-pipeline && python3 scripts/extract_memo.py --transcript '={{ $json.body.onboarding_path }}' --pipeline B --v1-memo '={{ $json.body.v1_memo_path }}'"
+      },
+      "id": "exec-pipeline-b",
+      "name": "Execute: Patch Memo v2",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [500, 500]
+    },
+    {
+      "parameters": {
+        "command": "cd /home/clara-pipeline && python3 scripts/generate_agent_spec.py --memo '={{ $json.v2_memo_path }}'"
+      },
+      "id": "exec-gen-spec-v2",
+      "name": "Execute: Generate Agent Spec v2",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [750, 500]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"status\": \"success\", \"account_id\": \"{{ $json.account_id }}\", \"version\": \"v1\" }"
+      },
+      "id": "respond-a",
+      "name": "Respond: Pipeline A Done",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"status\": \"success\", \"account_id\": \"{{ $json.account_id }}\", \"version\": \"v2\" }"
+      },
+      "id": "respond-b",
+      "name": "Respond: Pipeline B Done",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 500]
+    }
+  ],
+  "connections": {
+    "Webhook: Pipeline A": {
+      "main": [[ { "node": "Execute: Extract Memo v1", "type": "main", "index": 0 } ]]
+    },
+    "Execute: Extract Memo v1": {
+      "main": [[ { "node": "Execute: Generate Agent Spec v1", "type": "main", "index": 0 } ]]
+    },
+    "Execute: Generate Agent Spec v1": {
+      "main": [[ { "node": "Respond: Pipeline A Done", "type": "main", "index": 0 } ]]
+    },
+    "Webhook: Pipeline B": {
+      "main": [[ { "node": "Execute: Patch Memo v2", "type": "main", "index": 0 } ]]
+    },
+    "Execute: Patch Memo v2": {
+      "main": [[ { "node": "Execute: Generate Agent Spec v2", "type": "main", "index": 0 } ]]
+    },
+    "Execute: Generate Agent Spec v2": {
+      "main": [[ { "node": "Respond: Pipeline B Done", "type": "main", "index": 0 } ]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "description": "Clara Answers: Demo Call → Agent v1, Onboarding → Agent v2",
+    "templateId": "clara-answers-pipeline"
+  }
+}
